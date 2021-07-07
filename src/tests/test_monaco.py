@@ -1,5 +1,5 @@
 import argparse
-from src.monaco_pkg import monaco
+from src.monaco import monaco
 from unittest import mock
 
 
