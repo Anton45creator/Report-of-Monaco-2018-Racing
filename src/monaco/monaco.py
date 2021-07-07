@@ -20,6 +20,11 @@ start = "start.log"
 
 
 def build_report(file):
+    """
+    Take params and returned report of qualification
+    :param file: folder path
+    :return: report list
+    """
     pilots = {}
     lap_times = {}
     report = []
@@ -59,6 +64,13 @@ def format_delta(timedelta):
 
 
 def print_report(report, driver=None, desc=False):
+    """
+    Print report to stdout
+    :param report: report of qualification result
+    :param driver: name of driver whose statistic you wish to show
+    :param desc: order descending
+    :return: None
+    """
     separator = "-" * 70
     if driver:
         printer = [line for line in report if line.name == driver]
@@ -79,6 +91,10 @@ def print_report(report, driver=None, desc=False):
 
 
 def input_from_argparse(cl_args):
+    """
+    Parse args from command line
+    :return: args
+    """
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
     subparsers = parser.add_subparsers(title='subcommands', description='valid subcommands',
@@ -93,6 +109,10 @@ def input_from_argparse(cl_args):
 
 
 def main():
+    """
+    Main func
+    :return: none
+    """
     args = input_from_argparse(sys.argv[1:])
     report = build_report(args.file)
     if "driver" in args:
