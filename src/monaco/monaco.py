@@ -91,3 +91,16 @@ def input_from_argparse(cl_args):
     args = parser.parse_args(cl_args)
     return args
 
+
+def main():
+    args = input_from_argparse(sys.argv[1:])
+    report = build_report(args.file)
+    if "driver" in args:
+        print_report(report, driver=args.driver)
+    else:
+        print_report(report, desc=args.desc)
+
+
+if __name__ == "__main__":
+    main()
+
