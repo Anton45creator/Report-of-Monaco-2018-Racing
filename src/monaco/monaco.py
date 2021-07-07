@@ -56,3 +56,38 @@ def format_delta(timedelta):
     minutes, seconds = divmod(sec, 60)
     string = "{}:{}.{:>3}".format(minutes, seconds, mic)
     return string
+
+
+def print_report(report, driver=None, desc=False):
+    separator = "-" * 70
+    if driver:
+        printer = [line for line in report if line.name == driver]
+    elif desc:
+        separator_line_num = -15
+        printer = report[::-1]
+        printer.insert(separator_line_num, separator)
+    else:
+        separator_line_num = 15
+        printer = report[:]
+        printer.insert(separator_line_num, separator)
+    for line in printer:
+        if isinstance(line, PilotStats):
+            print("{:>2}. {:<20}| {:<30}| {}".format(line.position, line.name,
+                                                     line.team, format_delta(line.fastest_lap)))
+        else:
+            print(line)
+
+
+def input_from_argparse(cl_args):
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    subparsers = parser.add_subparsers(title='subcommands', description='valid subcommands',
+                                       help='Name of driver whose statistics you wish to watch')
+    parser.add_argument("-f", "--file", type=str, help="Folder path")
+    parser_driver = subparsers.add_parser("driver", help="Name")
+    parser_driver.add_argument("driver", type=str)
+    group.add_argument("--asc", action="store_true", help="Order by time asc")
+    group.add_argument("--desc", action="store_true", help="Order by time desc")
+    args = parser.parse_args(cl_args)
+    return args
+
