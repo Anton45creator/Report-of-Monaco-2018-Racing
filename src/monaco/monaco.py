@@ -45,3 +45,14 @@ def build_report(file):
         fastest_lap = lap_time
         report.append(PilotStats(abbreviation, position, name, team, fastest_lap))
     return report
+
+
+def format_delta(timedelta):
+    if timedelta.microseconds == 0:
+        mic = "000"
+    else:
+        mic = str(timedelta)[-6:-3]
+    sec = timedelta.seconds
+    minutes, seconds = divmod(sec, 60)
+    string = "{}:{}.{:>3}".format(minutes, seconds, mic)
+    return string
