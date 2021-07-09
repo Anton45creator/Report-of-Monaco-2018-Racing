@@ -72,8 +72,7 @@ def build_report(data, asc=None):
         record['position'] = position
 
     # Sorting by settings
-
-    if asc is None or asc:
+    if asc == False:
         report = sorted(report, key=lambda k: k['position'], reverse=False)
     else:
         report = sorted(report, key=lambda k: k['position'], reverse=True)
