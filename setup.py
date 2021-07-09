@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='Tasc_6 Report of Monaco 2018 Racing',
-    version='0.0.1',
+    version='0.2.0',
     author="Anton Viazovic",
     author_email="loukik56@mail.ru",
     description="Create report from raw data F1",
