@@ -1,6 +1,6 @@
 import click
 import os
-from report_of_monaco import build_report, print_report
+from monaco import build_report, print_report
 
 
 def get_file_content(folder_path, filename, insert_char=False, char='', pos=0):
