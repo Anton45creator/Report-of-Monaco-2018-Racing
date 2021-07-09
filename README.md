@@ -2,6 +2,7 @@
 
 This program processes the data of the F1 qualification and outputs the 
 result in the form of a table.
+The program should receive the following files.
 
 
 abbreviations.txt
