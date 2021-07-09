@@ -1,8 +1,29 @@
+Metadata-Version: 2.1
+Name: Tasc-6-Report-of-Monaco-2018-Racing
+Version: 0.0.1
+Summary: Create report from raw data F1
+Home-page: https://git.foxminded.com.ua/Anton1/report-of-monaco-2018-racing.git
+Author: Anton Viazovic
+Author-email: loukik56@mail.ru
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3.7
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+
 # Report tool
 
 This program processes the data of the F1 qualification and outputs the 
 result in the form of a table.
 
+You must have that file structure
+```
+data
+|--abbreviations.txt
+|--end.log
+'--start.log
+```
 
 abbreviations.txt
 ```
@@ -24,7 +45,15 @@ RGH2018-05-24_12:06:27.441
 ```
 
 #Quick start
-You can use CLI with few parameters.
+After installing the package you can simply importing function ```main``` and invoke her
+```
+# example.py
+from report_pkg import main
+
+if __name__ == "__main__":
+    main()
+```
+Now, you can use CLI with few parameters
 
 Run this command from the same directory where ```example.py``` is located for a showing list of drivers and optional
 order (default order is asc)
@@ -46,9 +75,10 @@ Output:
 ```
 You can show statistic about driver with:
 ```
-python report.py --files <folder_path> driver “Sebastian Vettel”
+python report.py --files <folder_path> driver вЂњSebastian VettelвЂќ
 ```
 Output:
 ```
 2. Sebastian Vettel    | FERRARI                       | 1:12.415
 ```
+
