@@ -130,7 +130,8 @@ def print_report(report, driver, show_line=False):
         if len(report):
 
             print(
-                f'{"N": <3} | {"DRIVER": <20} | {"CAR": <30} | {"BEST LAP": <30}')
+                f'{"N": <3} | {"DRIVER": <20} | '
+                f'{"CAR": <30} | {"BEST LAP": <30}')
             print('-' * 70)
 
             for record in report:
@@ -138,7 +139,9 @@ def print_report(report, driver, show_line=False):
                     show_line = False
                     print('-' * 70)
                 print(
-                    f'{str(record["position"]) + ".": <3} | {record["driver"]: <20} | {record["car"]: <30} | {record["result"]}')
+                    f'{str(record["position"]) + ".": <3} | '
+                    f'{record["driver"]: <20} | {record["car"]: <30} | '
+                    f'{record["result"]}')
         else:
             print('Report is empty!')
 
@@ -159,8 +162,10 @@ def print_report(report, driver, show_line=False):
                 Position: {record["position"]}
 
                 Best lap:
-                    start - {record["start"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}
-                    end   - {record["end"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}
+                    start - {record["start"].strftime('%Y-%m-%d %H:%M:%S.%f')
+                             [:-3]}
+                    end   - {record["end"].strftime('%Y-%m-%d %H:%M:%S.%f')
+                             [:-3]}
                     result: {record["result"]}"""
 
             print(message.replace('\t', ''))
