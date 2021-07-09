@@ -1,7 +1,0 @@
-LICENSE.txt
-README.md
-setup.py
-Tasc_6_Report_of_Monaco_2018_Racing.egg-info/PKG-INFO
-Tasc_6_Report_of_Monaco_2018_Racing.egg-info/SOURCES.txt
-Tasc_6_Report_of_Monaco_2018_Racing.egg-info/dependency_links.txt
-Tasc_6_Report_of_Monaco_2018_Racing.egg-info/top_level.txt
