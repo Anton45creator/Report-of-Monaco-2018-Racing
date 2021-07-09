@@ -1,34 +1,27 @@
-import argparse
 from src.monaco import monaco
-from unittest import mock
 
 
-def test_typical_build_report(drivers_data):
-    with mock.patch('builtins.open') as patched_open:
-        patched_open.side_effect = [mock.mock_open(read_data=text)() for text in drivers_data["input_data"]]
-        assert monaco.build_report("data") == drivers_data["report"]
+def test_report():
 
+    abb_str = '\n'.join([
+            'DRR_Daniel Ricciardo_RED BULL RACING TAG HEUER',
+            'SVF_Sebastian Vettel_FERRARI',
+            'LHM_Lewis Hamilton_MERCEDES'])
 
-def test_argparse():
-    a = ["--file", "data", "driver", "Sebastian Vettel"]
-    assert monaco.input_from_argparse(a) == argparse.Namespace(asc=False,
-                                                               desc=False,
-                                                               driver="Sebastian Vettel", file="data")
+    start_str = '\n'.join([
+            'DRR_2018-05-24_12:08:12.054',
+            'SVF_2018-05-24_12:02:58.917',
+            'LHM_2018-05-24_12:04:20.125'])
 
+    end_str = '\n'.join([
+            'DRR_2018-05-24_12:11:24.067',
+            'SVF_2018-05-24_12:04:03.332',
+            'LHM_2018-05-24_12:11:32.585'])
 
-def test_print_report_asc(asc_list):
-    with mock.patch('builtins.print') as patched_print:
-        monaco.print_report(*asc_list[0])
-        assert patched_print.call_args_list == asc_list[1]
+    data = {'abb': abb_str,
+            'start': start_str,
+            'end': end_str}
 
+    report = monaco.build_report(data)
 
-def test_print_report_desc(desc_list):
-    with mock.patch('builtins.print') as patched_print:
-        monaco.print_report(*desc_list[0])
-        assert patched_print.call_args_list == desc_list[1]
-
-
-def test_print_report_vettel(driver_vettel):
-    with mock.patch('builtins.print') as patched_print:
-        monaco.print_report(*driver_vettel[0])
-        assert patched_print.call_args_list == driver_vettel[1]
+    assert (len(report), 3)

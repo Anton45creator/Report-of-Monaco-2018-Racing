@@ -1,126 +1,168 @@
-import datetime
-import argparse
-import sys
-import os
-from dataclasses import dataclass
+from datetime import datetime, timedelta
+
+position_of_qualified = 15
 
 
-@dataclass
-class PilotStats:
-    abbreviation: str
-    position: int
-    name: str
-    team: str
-    fastest_lap: datetime.timedelta
+def build_report(data, asc=None):
+    """Return list of drivers results:
+        [
+         {'driver': 'Sebastian Vettel',
+            'car': 'FERRARI',
+            'start': Timestamp('2018-05-24 12:02:58.917000'),
+            'end': Timestamp('2018-05-24 12:04:03.332000'),
+            'time': Timedelta('0 days 00:01:04.415000'),
+            'result': '1:04.415'
+            'position': 1},
+         {'driver': 'Valtteri Bottas',
+             'car': 'MERCEDES',
+             'start': Timestamp('2018-05-24 12:00:00'),
+             'end': Timestamp('2018-05-24 12:01:12.434000'),
+             'time': Timedelta('0 days 00:01:12.434000'),
+             'result': '1:12.434'
+             'position': 2},]"""
 
+    # Reading data and columns filling
 
-abbreviations = "abbreviations.txt"
-end = "end.log"
-start = "start.log"
+    empty_datetime = datetime(1, 1, 1, 0, 0)
+    empty_timedelta = timedelta(0)
 
+    drivers = {}
 
-def build_report(file):
-    """
-    Take params and returned report of qualification
-    :param file: folder path
-    :return: report list
-    """
-    pilots = {}
-    lap_times = {}
+    for line in data['abb'].splitlines():
+        values = line.split('_')
+        if len(values) < 3:
+            continue
+
+        key = values[0]
+        drivers[key] = {
+            'driver': values[1],
+            'car': values[2],
+            'start': empty_datetime,
+            'end': empty_datetime,
+            'time': empty_timedelta,
+            'position': 0,
+            'disqualified': False}
+
+    fill_driver_datetime(drivers, data['start'], 'start')
+
+    fill_driver_datetime(drivers, data['end'], 'end')
+
+    fill_driver_time_result(drivers)
+
+    # Make report
+
     report = []
-    with open(os.path.join(file, abbreviations)) as abb_file:
-        for line in abb_file.read().split("\n"):
-            abbreviation, name, team = line.split("_")
-            pilots[abbreviation] = (name, team,)
-    with open(os.path.join(file, end))as end_file:
-        for line in end_file.read().split("\n"):
-            abbreviation = line[:3]
-            end_datetime = line[3:]
-            lap_times[abbreviation] = datetime.datetime.fromisoformat(end_datetime)
-    with open(os.path.join(file, start)) as start_file:
-        for line in start_file.read().split("\n"):
-            abbreviation = line[:3]
-            start_datetime = line[3:]
-            lap_times[abbreviation] -= datetime.datetime.fromisoformat(start_datetime)
-    sorted_laps = list(lap_times.items())
-    sorted_laps.sort(key=lambda i: i[1])
-    for position, abbr_time_tuple in enumerate(sorted_laps, 1):
-        abbreviation, lap_time = abbr_time_tuple
-        name, team = pilots[abbreviation]
-        fastest_lap = lap_time
-        report.append(PilotStats(abbreviation, position, name, team, fastest_lap))
+
+    for driver in drivers.values():
+        report.append(driver)
+
+    report = sorted(report, key=lambda k: k['time'])
+
+    # Column Position filling
+
+    result = ''
+    position = 0
+
+    for record in report:
+
+        if not result == record['result']:
+            position = position + 1
+            result = record['result']
+
+        record['position'] = position
+
+    # Sorting by settings
+
+    if asc is None:
+        report = sorted(report, key=lambda k: k['position'], reverse=False)
+    elif asc:
+        report = sorted(report, key=lambda k: k['position'], reverse=False)
+    else:
+        report = sorted(report, key=lambda k: k['position'], reverse=True)
+
     return report
 
 
-def format_delta(timedelta):
-    if timedelta.microseconds == 0:
-        mic = "000"
-    else:
-        mic = str(timedelta)[-6:-3]
-    sec = timedelta.seconds
-    minutes, seconds = divmod(sec, 60)
-    string = "{}:{}.{:>3}".format(minutes, seconds, mic)
-    return string
+def fill_driver_datetime(drivers, data_string, field_name):
+    for line in data_string.splitlines():
+        values = line.split('_')
+        if len(values) < 3:
+            continue
+
+        value_date = values[1]
+        value_time = ''.join((values[2], '000'))
+
+        value = ' '.join((value_date, value_time))
+        value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S.%f')
+
+        key = values[0]
+        drivers[key][field_name] = value
 
 
-def print_report(report, driver=None, desc=False):
-    """
-    Print report to stdout
-    :param report: report of qualification result
-    :param driver: name of driver whose statistic you wish to show
-    :param desc: order descending
-    :return: None
-    """
-    separator = "-" * 70
-    if driver:
-        printer = [line for line in report if line.name == driver]
-    elif desc:
-        separator_line_num = -15
-        printer = report[::-1]
-        printer.insert(separator_line_num, separator)
-    else:
-        separator_line_num = 15
-        printer = report[:]
-        printer.insert(separator_line_num, separator)
-    for line in printer:
-        if isinstance(line, PilotStats):
-            print("{:>2}. {:<20}| {:<30}| {}".format(line.position, line.name,
-                                                     line.team, format_delta(line.fastest_lap)))
+def fill_driver_time_result(drivers):
+    dis_time = timedelta(days=30)
+    dis_result = 'Disqualified'
+
+    for key, driver in drivers.items():
+
+        if driver['end'] <= driver['start']:
+            driver['time'] = dis_time
+            driver['result'] = dis_result
+            driver['disqualified'] = True
         else:
-            print(line)
+            time = driver['end'] - driver['start']
+            driver['time'] = time
+
+            minutes = (time.seconds // 60) % 60
+            seconds = time.seconds % 60
+            ms = time.microseconds
+
+            driver[
+                'result'] = f'{minutes}:{str(seconds).zfill(2)}.{str(ms)[:3]}'
 
 
-def input_from_argparse(cl_args):
+def print_report(report, driver, show_line=False):
     """
-    Parse args from command line
-    :return: args
+    Output for "build_report" function
     """
-    parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group()
-    subparsers = parser.add_subparsers(title='subcommands', description='valid subcommands',
-                                       help='Name of driver whose statistics you wish to watch')
-    parser.add_argument("-f", "--file", type=str, help="Folder path")
-    parser_driver = subparsers.add_parser("driver", help="Name")
-    parser_driver.add_argument("driver", type=str)
-    group.add_argument("--asc", action="store_true", help="Order by time asc")
-    group.add_argument("--desc", action="store_true", help="Order by time desc")
-    args = parser.parse_args(cl_args)
-    return args
+    if driver is None:
 
+        if len(report):
 
-def main():
-    """
-    Main func
-    :return: none
-    """
-    args = input_from_argparse(sys.argv[1:])
-    report = build_report(args.file)
-    if "driver" in args:
-        print_report(report, driver=args.driver)
+            print(
+                f'{"N": <3} | {"DRIVER": <20} | {"CAR": <30} | {"BEST LAP": <30}')
+            print('-' * 70)
+
+            for record in report:
+                if show_line and record['position'] > position_of_qualified:
+                    show_line = False
+                    print('-' * 70)
+                print(
+                    f'{str(record["position"]) + ".": <3} | {record["driver"]: <20} | {record["car"]: <30} | {record["result"]}')
+        else:
+            print('Report is empty!')
+
     else:
-        print_report(report, desc=args.desc)
 
+        records = [x for x in report if x["driver"] == driver]
+        if len(records):
+            record = records[0]
 
-if __name__ == "__main__":
-    main()
+            if record['disqualified']:
+                race_result = 'Disqualified'
+            else:
+                race_result = str(record['time'])[:-3][11:]
 
+            message = f"""
+                Driver: {record["driver"]}
+                Car: {record["car"]}
+                Position: {record["position"]}
+
+                Best lap:
+                    start - {record["start"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}
+                    end   - {record["end"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}
+                    result: {record["result"]}"""
+
+            print(message.replace('\t', ''))
+        else:
+            print('Driver not found!')
