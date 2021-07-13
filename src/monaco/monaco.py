@@ -1,9 +1,7 @@
 from datetime import datetime, timedelta
 
-position_of_qualified = 15
 
-
-def build_report(data, asc=None):
+def build_report(data, asc=True):
     """Return list of drivers results:
         [
          {'driver': 'Sebastian Vettel',
@@ -58,21 +56,10 @@ def build_report(data, asc=None):
 
     report = sorted(report, key=lambda k: k['time'])
 
-    # Column Position filling
-
-    result = ''
-    position = 0
-
-    for record in report:
-
-        if not result == record['result']:
-            position = position + 1
-            result = record['result']
-
-        record['position'] = position
+    set_driver_position(report)
 
     # Sorting by settings
-    if asc == False:
+    if asc:
         report = sorted(report, key=lambda k: k['position'], reverse=False)
     else:
         report = sorted(report, key=lambda k: k['position'], reverse=True)
@@ -80,7 +67,38 @@ def build_report(data, asc=None):
     return report
 
 
+def set_driver_position(report):
+    """
+    Sets the position of drivers depending on the qualification.
+    """
+    position = 0
+    for record in report:
+        if not record['disqualified']:
+            position += 1
+            record['position'] = position
+        else:
+            record['position'] = position + 1
+
+
+def extract_disqualified(report: list):
+    """
+    Sorts drivers by lists depending on the qualification completion.
+    """
+    disqualified = []
+    qualified = []
+    for record in report:
+        if record['disqualified']:
+            disqualified.append(record)
+        else:
+            qualified.append(record)
+
+    return qualified, disqualified
+
+
 def fill_driver_datetime(drivers, data_string, field_name):
+    """
+    Fills in the date and time.
+    """
     for line in data_string.splitlines():
         values = line.split('_')
         if len(values) < 3:
@@ -114,46 +132,47 @@ def fill_driver_time_result(drivers):
             seconds = time.seconds % 60
             ms = time.microseconds
 
-            driver[
-                'result'] = f'{minutes}:{str(seconds).zfill(2)}.{str(ms)[:3]}'
+            driver['result'] = f'{minutes}:{str(seconds).zfill(2)}.{str(ms)[:3]}'
 
 
-def print_report(report, driver, show_line=False):
+def report_qualification(report):
     """
-    Output for "build_report" function
+    :param report: List of parameters.
+    :return: Qualification results.
     """
-    if driver is None:
+    if len(report):
+        qualified, disqualified = extract_disqualified(report)
 
-        if len(report):
+        print(
+            f'{"N": <3} | {"DRIVER": <20} | '
+            f'{"CAR": <30} | {"BEST LAP": <30}')
+        print('-' * 70)
 
+        for record in qualified:
             print(
-                f'{"N": <3} | {"DRIVER": <20} | '
-                f'{"CAR": <30} | {"BEST LAP": <30}')
-            print('-' * 70)
-
-            for record in report:
-                if show_line and record['position'] > position_of_qualified:
-                    show_line = False
-                    print('-' * 70)
+                f'{str(record["position"]) + ".": <3} | '
+                f'{record["driver"]: <20} | {record["car"]: <30} | '
+                f'{record["result"]}')
+        print('-' * 70)
+        if len(disqualified):
+            for record in disqualified:
                 print(
                     f'{str(record["position"]) + ".": <3} | '
                     f'{record["driver"]: <20} | {record["car"]: <30} | '
                     f'{record["result"]}')
-        else:
-            print('Report is empty!')
 
-    else:
 
-        records = [x for x in report if x["driver"] == driver]
-        if len(records):
-            record = records[0]
+def report_driver(report, driver):
+    """
+    :param report: List of parameters.
+    :param driver: "Driver's name".
+    :return: Driver information and results.
+    """
+    records = [x for x in report if x["driver"] == driver]
+    if len(records):
+        record = records[0]
 
-            if record['disqualified']:
-                race_result = 'Disqualified'
-            else:
-                race_result = str(record['time'])[:-3][11:]
-
-            message = f"""
+        message = f"""
                 Driver: {record["driver"]}
                 Car: {record["car"]}
                 Position: {record["position"]}
@@ -161,10 +180,21 @@ def print_report(report, driver, show_line=False):
                 Best lap:
                     start - {record["start"].strftime('%Y-%m-%d %H:%M:%S.%f')
                              [:-3]}
-                    end   - {record["end"].strftime('%Y-%m-%d %H:%M:%S.%f')
-                             [:-3]}
+                    end - {record["end"].strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}
                     result: {record["result"]}"""
 
-            print(message.replace('\t', ''))
-        else:
-            print('Driver not found!')
+        print(message.replace('\t', ''))
+    else:
+        print('Driver not found!')
+
+
+def print_report(report, driver):
+    """
+    Output for "build_report" function
+    """
+
+    if driver is None:
+        report_qualification(report)
+
+    else:
+        report_driver(report, driver)
