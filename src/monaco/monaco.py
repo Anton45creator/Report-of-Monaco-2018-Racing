@@ -115,11 +115,13 @@ def fill_driver_datetime(drivers, data_string, field_name):
 
 
 def fill_driver_time_result(drivers):
+    """
+    Calculates the result of the driver's time.
+    """
     dis_time = timedelta(days=30)
     dis_result = 'Disqualified'
 
     for key, driver in drivers.items():
-
         if driver['end'] <= driver['start']:
             driver['time'] = dis_time
             driver['result'] = dis_result
