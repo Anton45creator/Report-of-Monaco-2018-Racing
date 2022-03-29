@@ -33,6 +33,7 @@ def build_report(data, asc=True):
 
         key = values[0]
         drivers[key] = {
+            'key': values[0],
             'driver': values[1],
             'car': values[2],
             'start': empty_datetime,
@@ -175,6 +176,7 @@ def report_driver(report, driver):
         record = records[0]
 
         message = f"""
+                Key: {record["key"]}
                 Driver: {record["driver"]}
                 Car: {record["car"]}
                 Position: {record["position"]}
